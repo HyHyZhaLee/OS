@@ -4,8 +4,8 @@ ASSIGNMENT OPERATING SYSTEM - HCMUT2022
 
 
 
-Huy: timer, sched
+Huy: mem, sched
 
-Thịnh: loader, mem
+Thịnh: loader, timer
 
 Nguyên: Queue, Paging
