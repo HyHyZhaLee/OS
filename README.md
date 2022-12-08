@@ -3,6 +3,9 @@
 ASSIGNMENT OPERATING SYSTEM - HCMUT2022
 
 
-Advisor(s): Dr. Phạm Quốc Cường
 
-Student: Lý Gia Huy - 2053038
+Huy: Queue, sched
+
+Thịnh: Loader, Timer
+
+Nguyên: Mem, Paging
