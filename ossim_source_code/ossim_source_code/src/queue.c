@@ -29,13 +29,7 @@ struct pcb_t * dequeue(struct queue_t * q) {
 	 * */
 
 	if(q->size == 0) return NULL;										
-
-	struct pcb_t *result = malloc(sizeof(struct pcb_t));
-
-	*result = *(q->proc[q->size-1]);
-	free(q->proc[q->size-1]);
-	q->proc[q->size-1] = NULL;
 	q->size--;
-	return result;
+	return q->proc[q->size];
 }
 
