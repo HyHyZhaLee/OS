@@ -216,16 +216,16 @@ int free_mem(addr_t address, struct pcb_t * proc) {
 				break;
 			}
 		}
-		if (current_page_index == 32) {      // if we can't find the page
-            pthread_mutex_unlock(&mem_lock); // bail out
+		if (current_page_index == 32) {      // no page table in segment table
+            pthread_mutex_unlock(&mem_lock);
 			return 0;
         }
 
-		addr_t physical_index = page_table->table[current_page_index].p_index;
-		if(_mem_stat[physical_index].next != -1) check = true;
-		else check = false;
+		addr_t physical_index = page_table->table[current_page_index].p_index; //get physical address from page table 
+		if(_mem_stat[physical_index].next != -1) check = true; //continue when not the last address in page table
+		else check = false; 
 
-		_mem_stat[physical_index].index = 0;
+		_mem_stat[physical_index].index = 0; //reset value on RAM
 		_mem_stat[physical_index].next = -1;
 		_mem_stat[physical_index].proc = 0;
 
@@ -233,13 +233,13 @@ int free_mem(addr_t address, struct pcb_t * proc) {
 		page_table->table[current_page_index].v_index = 32;
 
 		for(addr_t i = current_page_index; i < page_table->size - 1; i++) {
-			page_table->table[i] = page_table->table[i + 1];
+			page_table->table[i] = page_table->table[i + 1]; //remove address from page table
 		}
 
-		page_table->table[page_table->size].p_index = 32;
+		page_table->table[page_table->size].p_index = 32; //set invalid for last page after compact the page table
 		page_table->table[page_table->size].v_index = 32;
 		page_table->size--;
-		if(page_table->size == 32) {
+		if(page_table->size == 0) { //if there is a empty page table then we free that page table
 			for(addr_t i = 0; i < proc->seg_table->size; i++) {
 				if(proc->seg_table->table[i].v_index == current_segment_v_index) {
 					free(proc->seg_table->table[i].next_lv);
