@@ -50,17 +50,15 @@ struct pcb_t * get_mlq_proc(void) {
 	 * Remember to use lock to protect the queue.
 	 * */
 	pthread_mutex_lock(&queue_lock);
-	int temp;
-	for(temp = MAX_PRIO - 1; temp>=0; temp--){
-		if(mlq_ready_queue[temp].size != 0) {
-			// if (empty(&mlq_ready_queue[i])) {
-			// 	while(!empty(&run_queue)) 
-			// 	enqueue(&mlq_ready_queue[i], dequeue(&run_queue));
-			// }
+	int index;
+
+	for(index = MAX_PRIO - 1; index>=0; index--){
+		if(mlq_ready_queue[index].size != 0) {
 			break;
 		}
 	}
-	if(temp != -1) proc = dequeue(&mlq_ready_queue[temp]);
+	
+	proc = dequeue(&mlq_ready_queue[index]);
 	pthread_mutex_unlock(&queue_lock);	
 	return proc;	
 }
