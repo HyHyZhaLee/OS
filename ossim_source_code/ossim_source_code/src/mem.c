@@ -109,7 +109,6 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	 * process [proc] and save the address of the first
 	 * byte in the allocated memory region to [ret_mem].
 	 * */
-	printf("fuck");
 	uint32_t num_pages = (size % PAGE_SIZE) ? size / PAGE_SIZE + 1:
 		size / PAGE_SIZE; // Number of pages we will use
 	int mem_avail = 0; // We could allocate new memory region or not?
@@ -154,11 +153,14 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 			else _mem_stat[free_frame_physical_indexes[i]].next = (int32_t) free_frame_physical_indexes[i + 1];
 			_mem_stat[free_frame_physical_indexes[i]].proc = proc->pid;
 			_mem_stat[free_frame_physical_indexes[i]].index = i;
-			printf("PID %d: Free page physical index: %d\n", proc->pid, free_frame_physical_indexes[i]);
 
 			addr_t current_v_address = proc->bp + i * PAGE_SIZE;
 			addr_t current_segment_v_index = get_first_lv(current_v_address);
 			addr_t current_page_index = get_second_lv(current_v_address);
+
+			// printf("PID: %d virtual index -> %d\n", proc->pid, current_v_address);
+			// printf("PID: %d segment index (first level) -> %d\n", proc->pid, current_segment_v_index);
+			// printf("PID: %d page index (second level) -> %d\n\n", proc->pid, current_page_index);
 
 			struct trans_table_t* page_table = NULL;
 			for(addr_t segment_index = 0; segment_index < proc->seg_table->size; segment_index++) {
@@ -173,12 +175,6 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 				proc->seg_table->table[proc->seg_table->size].next_lv = page_table;
 				proc->seg_table->table[proc->seg_table->size].v_index = current_segment_v_index;
 				proc->seg_table->size++;
-
-				// for (uint32_t i = 0; i < 32; i++) {
-				// 	page_table->table[i].p_index = 0;
-				// 	page_table->table[i].v_index = 0;
-				// }
-				// page_table->size = 0;
 			}
 			page_table->table[page_table->size].v_index = current_page_index;
 			page_table->table[page_table->size].p_index = free_frame_physical_indexes[i];
@@ -188,29 +184,6 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	proc->bp = proc->bp + num_pages * PAGE_SIZE;
 	pthread_mutex_unlock(&mem_lock);
 	return ret_mem;
-}
-
-void adjust_bp(struct pcb_t *proc) {
-    if (proc->seg_table->size == 0) {
-        proc->bp = 1024;
-        return;
-    }
-    uint32_t max_segment_v_index = 0;
-    uint32_t max_v_index_segment_index = 0;
-    for (uint32_t i = 0; i < proc->seg_table->size; i++) {
-        if (proc->seg_table->table[i].v_index > max_segment_v_index) {
-            max_segment_v_index = proc->seg_table->table[i].v_index;
-            max_v_index_segment_index = i;
-        }
-    }
-    uint32_t max_page_v_index = 0;
-    for (uint32_t i = 0; i < proc->seg_table->table[max_v_index_segment_index].next_lv->size; i++) {
-        if (proc->seg_table->table[max_v_index_segment_index].next_lv->table[i].v_index > max_page_v_index) {
-            max_page_v_index = proc->seg_table->table[max_v_index_segment_index].next_lv->table[i].v_index;
-        }
-    }
-
-    proc->bp = ((max_v_index_segment_index << (OFFSET_LEN + PAGE_LEN)) | (max_page_v_index << OFFSET_LEN)) + PAGE_SIZE;
 }
 
 int free_mem(addr_t address, struct pcb_t * proc) {
@@ -249,7 +222,6 @@ int free_mem(addr_t address, struct pcb_t * proc) {
         }
 
 		addr_t physical_index = page_table->table[current_page_index].p_index;
-		printf("phy: %d\n", physical_index);
 		if(_mem_stat[physical_index].next != -1) check = true;
 		else check = false;
 
@@ -280,7 +252,6 @@ int free_mem(addr_t address, struct pcb_t * proc) {
 				}
 			}
 		}
-		adjust_bp(proc);
 		current_address += PAGE_SIZE;
 	}
 	pthread_mutex_unlock(&mem_lock);
@@ -316,7 +287,7 @@ void dump(void) {
 	for (i = 0; i < NUM_PAGES; i++) {
 		if (_mem_stat[i].proc != 0) {
 			printf("%03d: ", i);
-			printf("%05x-%05x - PID: %02d (idx %03d, nxt: %03d)\n",
+			printf("%05d-%05d - PID: %02d (idx %03d, nxt: %03d)\n",
 				i << OFFSET_LEN,
 				((i + 1) << OFFSET_LEN) - 1,
 				_mem_stat[i].proc,
