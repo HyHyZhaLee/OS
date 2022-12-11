@@ -95,7 +95,7 @@ static int translate(
 			int physical_index = trans_table->table[i].p_index;
 
 			*physical_addr = ((physical_index << OFFSET_LEN) | offset);
-			printf("PID %d: virtual 0x%02x -> physical 0x%02x\n", proc->pid, virtual_addr, *physical_addr);
+			//printf("PID %d: virtual 0x%02x -> physical 0x%02x\n", proc->pid, virtual_addr, *physical_addr);
 			return 1;
 		}
 	}
@@ -182,6 +182,8 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 		}
 	}
 	proc->bp = proc->bp + num_pages * PAGE_SIZE;
+	// printf("---- Allocate memory ----\n");
+	// dump();
 	pthread_mutex_unlock(&mem_lock);
 	return ret_mem;
 }
@@ -254,6 +256,8 @@ int free_mem(addr_t address, struct pcb_t * proc) {
 		}
 		current_address += PAGE_SIZE;
 	}
+	// printf("---- Free memory ----\n");
+	// dump();
 	pthread_mutex_unlock(&mem_lock);
 	return 1;
 }
@@ -262,10 +266,10 @@ int read_mem(addr_t address, struct pcb_t * proc, BYTE * data) {
 	addr_t physical_addr;
 	if (translate(address, &physical_addr, proc)) {
 		*data = _ram[physical_addr];
-        printf("PID: %d read at address 0x%x, got data 0x%02x\n", proc->pid, address, *data);
+        //printf("PID: %d read at address 0x%x, got data 0x%02x\n", proc->pid, address, *data);
 		return 0;
 	}else{
-		printf("PID: %d failed to read at address 0x%02x\n", proc->pid, address);
+		//printf("PID: %d failed to read at address 0x%02x\n", proc->pid, address);
 		return 1;
 	}
 }
@@ -274,10 +278,10 @@ int write_mem(addr_t address, struct pcb_t * proc, BYTE data) {
 	addr_t physical_addr;
 	if (translate(address, &physical_addr, proc)) {
 		_ram[physical_addr] = data;
-        printf("PID: %d wrote at address 0x%x, with data 0x%02x\n", proc->pid, address, data);
+        //printf("PID: %d wrote at address 0x%x, with data 0x%02x\n", proc->pid, address, data);
 		return 0;
 	}else{
-        printf("PID: %d failed to write at address 0x%x, with data 0x%02x\n", proc->pid, address, data);
+        //printf("PID: %d failed to write at address 0x%x, with data 0x%02x\n", proc->pid, address, data);
 		return 1;
 	}
 }
@@ -287,7 +291,7 @@ void dump(void) {
 	for (i = 0; i < NUM_PAGES; i++) {
 		if (_mem_stat[i].proc != 0) {
 			printf("%03d: ", i);
-			printf("%05d-%05d - PID: %02d (idx %03d, nxt: %03d)\n",
+			printf("%05x-%05x - PID: %02d (idx %03d, nxt: %03d)\n",
 				i << OFFSET_LEN,
 				((i + 1) << OFFSET_LEN) - 1,
 				_mem_stat[i].proc,
