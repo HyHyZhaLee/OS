@@ -3,7 +3,7 @@
 #include "timer.h"
 #include "sched.h"
 #include "loader.h"
-
+#include "mem.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -179,6 +179,7 @@ int main(int argc, char * argv[]) {
 	pthread_join(ld, NULL);
 
 	/* Stop timer */
+	dump();
 	stop_timer();
 	return 0;
 
