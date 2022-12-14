@@ -9,7 +9,7 @@ static struct queue_t ready_queue;
 static struct queue_t run_queue;
 static pthread_mutex_t queue_lock;
 #define MLQ_SCHED
-#define MAX_PRIO 5
+#define MAX_PRIO 140
 
 #ifdef MLQ_SCHED
 static struct queue_t mlq_ready_queue[MAX_PRIO];
@@ -50,15 +50,13 @@ struct pcb_t * get_mlq_proc(void) {
 	 * Remember to use lock to protect the queue.
 	 * */
 	pthread_mutex_lock(&queue_lock);
-	int index;
-
-	for(index = MAX_PRIO - 1; index>=0; index--){
-		if(mlq_ready_queue[index].size != 0) {
+	unsigned long prio;
+	for (prio = 0; prio < MAX_PRIO; prio++){
+		if(!empty(&mlq_ready_queue[prio])) {
+			proc = dequeue(&mlq_ready_queue[prio]);
 			break;
 		}
 	}
-	
-	proc = dequeue(&mlq_ready_queue[index]);
 	pthread_mutex_unlock(&queue_lock);	
 	return proc;	
 }
